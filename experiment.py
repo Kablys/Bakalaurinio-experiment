@@ -10,9 +10,9 @@ parser.add_argument("--stemer",   action='store_true')
 parser.add_argument("--lemstop",  action='store_true')
 parser.add_argument("--lemmer",   action='store_true')
 
-parser.add_argument("--ngram",  type=int,   choices=range(1, 7),)
+parser.add_argument("--ngram",  type=int,   choices=range(1, 11),)
 parser.add_argument("--min_df", type=int,   choices=range(1, 11),)
-parser.add_argument("--max_df", type=float, choices=(x/20 for x in range(1, 20)),) #0.05, 0.1 ... 0.95
+parser.add_argument("--max_df", type=float, ) #0.05, 0.1 ... 0.95
 parser.add_argument("--dr",     type=int,   choices=range(1, 101),)
 
 parser.add_argument('--methods', nargs='+', choices='km em ac aa aw db'.split(),
@@ -55,12 +55,14 @@ def get_lemma_data():
 def make_dataset(experiment_data, **kwargs):
     vectorizer = TfidfVectorizer(**kwargs)
     matrix = vectorizer.fit_transform(experiment_data)
+    #print(matrix.shape)
+  #  quit()
     names = vectorizer.get_feature_names()
     print('>' + str(vectorizer))
     return [{"matrix" : matrix, "names" : names}]  
 
 get_pre_data() # TODO run these only if needed
-#get_lemma_data()
+get_lemma_data()
 datasets = []
 
 if args.raw:  
@@ -86,7 +88,7 @@ if args.min_df:
     df = args.min_df
     datasets += make_dataset(all_tokens, min_df = df)
 if args.max_df:
-    df = args.min_df
+    df = args.max_df
     datasets += make_dataset(all_tokens, max_df = df)
 if args.dr:
     svd = TruncatedSVD(args.dr)
@@ -148,14 +150,13 @@ if "aw" in args.methods:
 if "db" in args.methods:
     DBSCANtitle = "DBSCAN"
     DBSCANmodel = DBSCAN(n_jobs = jobs,)
-    methods += [{"model": DBSCANmodel, "title": DBSCANtitle}]
+#    methods += [{"model": DBSCANmodel, "title": DBSCANtitle}]
 print(methods)
 
 
 
 
 import itertools
-import matplotlib.pyplot as plt
 from sklearn.metrics import *
 from scipy.stats import mode
 
@@ -242,10 +243,6 @@ def analyse(m, data):
     else:
         print(m)
         
-
-
-
-
 import time
 
 for dataset in datasets:
